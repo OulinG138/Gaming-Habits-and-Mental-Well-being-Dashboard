@@ -1,0 +1,48 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.env/
+.venv/
+env/
+venv/
+pipenv/
+
+# Jupyter Notebook checkpoints and converted files
+.ipynb_checkpoints/
+*.nbconvert.ipynb
+*.nb.html
+
+# Jupytext intermediate files
+*.pyj
+*.mdj
+*.rmdj
+*.Rmdj
+
+# VS Code and IDE settings
+.vscode/
+.idea/
+*.code-workspace
+
+# OS Generated Files
+.DS_Store
+
+Thumbs.db
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+*.out
+*.err
+
+# Data and output directories
+data/
+output/
+results/
+logs/
+
+# End of file newline fixer
+*.swp  # Editor swap files
