@@ -1,0 +1,12 @@
+# Server Configuration
+[server]
+headless = true # Run in headless mode (useful for deployment)
+port = 8501     # Default port
+
+# Dark Theme Configuration
+[theme]
+primaryColor = "#1f77b4"             # Main color for buttons and interactive elements
+backgroundColor = "#0e1117"          # Main background color
+secondaryBackgroundColor = "#262730" # Sidebar background color
+textColor = "#FAFAFA"                # Default text color
+font = "sans serif"                  # Font style, options: "sans serif", "serif", "monospace"
