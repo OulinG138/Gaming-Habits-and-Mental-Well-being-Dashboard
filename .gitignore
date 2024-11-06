@@ -39,7 +39,6 @@ Thumbs.db
 *.err
 
 # Data and output directories
-data/
 output/
 results/
 logs/
