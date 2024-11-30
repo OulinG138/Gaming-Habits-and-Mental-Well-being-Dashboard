@@ -46,6 +46,7 @@ def create_trend_line(x, y):
     z = np.polyfit(x, y, 1)
     p = np.poly1d(z)
     x_range = np.linspace(x.min(), x.max(), 100)
+    print("hello")
     return x_range, p(x_range)
 
 

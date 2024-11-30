@@ -17,7 +17,8 @@ def main():
     st.title("Gaming Habits and Mental Well-being")
 
     # Create tabs
-    tab1, tab2, tab3 = st.tabs(["Kind of Player", "Kind of Game", "Quality of Life"])
+    tab1, tab2, tab3 = st.tabs(
+        ["Kind of Player", "Kind of Game", "Quality of Life"])
 
     # Render each tab
     with tab1:
@@ -31,4 +32,5 @@ def main():
 
 
 if __name__ == "__main__":
+    print('hello world')
     main()
