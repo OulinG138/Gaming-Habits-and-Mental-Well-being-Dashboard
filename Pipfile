@@ -13,6 +13,7 @@ seaborn = "*"
 plotly = "*"
 streamlit = "*"
 altair = "*"
+streamlit-plotly-events = "*"
 
 [dev-packages]
 black = "*"
@@ -21,11 +22,8 @@ pre-commit = "*"
 [requires]
 python_version = "3.12"
 
-[tool.black]
-line-length = 88
-target-version = ['py37']
-include = '\.pyi?$'
-exclude = '''
+[tool]
+black = {line-length = 88, target-version = ['py37'], include = '\.pyi?$', exclude = '''
 /(
     \.git
   | \.hg
@@ -37,4 +35,4 @@ exclude = '''
   | build
   | dist
 )/
-'''
+'''}
