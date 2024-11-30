@@ -12,7 +12,7 @@ This project is an interactive dashboard that visualizes the relationship betwee
 
 ## Project Structure
 ```
-gaming_dashboard/
+STA313-Project/
 ├── src/
 │   ├── app.py                 # Main application file
 │   ├── pages/                 # Page components
