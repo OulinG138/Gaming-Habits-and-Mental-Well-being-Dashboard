@@ -58,14 +58,20 @@ else
     exit 1
 fi
 
-# 5. Activate the Pipenv shell
-echo "🔄 Activating the Pipenv shell..."
-pipenv shell
+# 5. Activate the Pipenv virtual environment
+echo "🔄 Activating the virtual environment..."
+source "$(pipenv --venv)/bin/activate"
+echo "✔️ Virtual environment activated! You are now in the Pipenv environment."
 
-# 6. Prompt to configure Git user and email
+# 6. Ensure ipykernel is installed
+echo "🔄 Installing ipykernel..."
+pip install ipykernel
+echo "✔️ ipykernel installed successfully!"
+
+# 7. Prompt to configure Git user and email
 echo "🔧 Configuration of Git user and email for this repository:"
 read -p "👉 Enter your Git username: " git_user
-read -p "👉 Enter your Git email: " git_email"
+read -p "👉 Enter your Git email: " git_email
 
 git config user.name "$git_user"
 git config user.email "$git_email"
