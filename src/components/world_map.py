@@ -18,10 +18,10 @@ def render_world_map(df):
     fig = px.choropleth(
         country_stats,
         locations="Residence_ISO3",
-        color="GAD_Total",
+        color="GAD_T",
         color_continuous_scale="Reds",
-        range_color=(0, country_stats["GAD_Total"].max()),
-        labels={"GAD_Total": "Anxiety"},
+        range_color=(0, country_stats["GAD_T"].max()),
+        labels={"GAD_T": "Anxiety"},
     )
 
     # Update layout
@@ -59,7 +59,8 @@ def render_world_map(df):
 
     # Display the map and get click events
     with map_container:
-        clicked_point = plotly_events(fig, click_event=True, override_height=300)
+        clicked_point = plotly_events(
+            fig, click_event=True, override_height=300)
 
     # Handle click events
     if clicked_point:

@@ -38,12 +38,6 @@ def load_data():
         )
     )
 
-    # Calculate anxiety scores
-    df["GAD_Total"] = df[["GAD1", "GAD2", "GAD3", "GAD4", "GAD5", "GAD6", "GAD7"]].sum(
-        axis=1
-    )
-    df["SWL_Total"] = df[["SWL1", "SWL2", "SWL3", "SWL4", "SWL5"]].sum(axis=1)
-
     return df
 
 
@@ -53,8 +47,8 @@ def get_country_stats(df):
         df.groupby("Residence_ISO3")
         .agg(
             {
-                "GAD_Total": "mean",
-                "SWL_Total": "mean",
+                "GAD_T": "mean",
+                "SWL_T": "mean",
                 "SPIN_T": "mean",
                 "Hours": "mean",
             }
@@ -67,7 +61,7 @@ def get_age_stats(df):
     """Calculate age group statistics"""
     return (
         df.groupby("AgeGroup")
-        .agg({"Hours": "mean", "GAD_Total": "mean", "SWL_Total": "mean"})
+        .agg({"Hours": "mean", "GAD_T": "mean", "SWL_T": "mean"})
         .reset_index()
     )
 

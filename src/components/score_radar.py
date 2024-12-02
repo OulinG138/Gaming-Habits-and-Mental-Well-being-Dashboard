@@ -26,9 +26,9 @@ def render_score_radar(df, platform=None):
         style_data = df[df["Playstyle"] == style]
         values = [
             style_data["SPIN_T"].mean(),
-            style_data["SWL_Total"].mean(),
+            style_data["SWL_T"].mean(),
             style_data["Narcissism"].mean(),
-            style_data["GAD_Total"].mean(),
+            style_data["GAD_T"].mean(),
         ]
 
         fig.add_trace(

@@ -34,9 +34,9 @@ def render_age_analysis(df):
         go.Bar(
             name="Anxiety Score",
             x=age_stats["AgeGroup"],
-            y=age_stats["GAD_Total"],
+            y=age_stats["GAD_T"],
             marker_color="salmon",
-            text=age_stats["GAD_Total"].round(1),
+            text=age_stats["GAD_T"].round(1),
             textposition="auto",
         )
     )
@@ -49,7 +49,8 @@ def render_age_analysis(df):
         xaxis_title="Age Group",
         yaxis_title="Hours / Score",
         showlegend=True,
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        legend=dict(orientation="h", yanchor="bottom",
+                    y=1.02, xanchor="right", x=1),
     )
 
     # Use the placeholder to display the chart
