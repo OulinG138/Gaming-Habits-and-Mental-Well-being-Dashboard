@@ -110,8 +110,12 @@ def render_motivation_analysis(df):
         "Other"
     ]
 
-    colors = ['rgb(173, 216, 235)', 'rgb(135, 206, 235)',
-              'rgb(255, 160, 122)', 'rgb(255, 99, 71)']
+    colors = [
+        'rgb(135, 206, 250)',  # Blue (Low anxiety)
+        'rgb(70, 130, 180)',   # Ocean Blue (Mild anxiety)
+        'rgb(255, 165, 0)',    # Orange (Moderate anxiety)
+        'rgb(255, 69, 0)'      # Red (High anxiety)
+    ]
 
     PEOPLE_PER_MARKER = 5  # Number of people represented by each marker
 
