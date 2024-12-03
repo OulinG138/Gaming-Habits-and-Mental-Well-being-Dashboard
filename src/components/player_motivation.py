@@ -5,6 +5,7 @@ import streamlit as st
 
 
 def categorize_earnings(value):
+    """Categorize earnings responses"""
     main_categories = [
         "I play for fun",
         "I play mostly for fun but earn a little on the side (tournament winnings, streaming, etc)",
@@ -14,6 +15,7 @@ def categorize_earnings(value):
 
 
 def categorize_anxiety(gad_score):
+    """Categorize GAD scores into anxiety levels"""
     if gad_score <= 5:
         return 0  # Low anxiety
     elif gad_score <= 10:
@@ -25,6 +27,7 @@ def categorize_anxiety(gad_score):
 
 
 def generate_random_circle_positions(count, radius=1, center_x=0, center_y=0):
+    """Generate random positions for circles within a given radius"""
     if count == 0:
         return [], []
     radii = np.sqrt(np.random.uniform(0, 1, count)) * radius
@@ -34,7 +37,20 @@ def generate_random_circle_positions(count, radius=1, center_x=0, center_y=0):
     return x, y
 
 
+def get_marker_symbol(status):
+    """Get the appropriate marker symbol for each employment status"""
+    symbols = {
+        'Employed': 'circle',
+        'Student at college / university': 'star',
+        'Student at school': 'diamond',
+        'Unemployed / between jobs': 'triangle-up'
+    }
+    return symbols.get(status, 'circle')
+
+
 def render_motivation_analysis(df):
+    """Render the motivation analysis visualization"""
+
     # Create filters in columns
     col1, col2 = st.columns(2)
 
@@ -65,7 +81,7 @@ def render_motivation_analysis(df):
         selected_anxiety_values = [anxiety_options[level]
                                    for level in selected_anxiety]
 
-    # Create a copy and categorize
+    # Create a copy and categorize data
     df = df.copy()
     df['earnings'] = df['earnings'].apply(categorize_earnings)
     df['anxiety_level'] = df['GAD_T'].apply(categorize_anxiety)
@@ -86,7 +102,7 @@ def render_motivation_analysis(df):
     # Create figure
     fig = go.Figure()
 
-    # Define categories
+    # Define categories and colors
     categories = [
         "I play for fun",
         "I play mostly for fun but earn a little on the side (tournament winnings, streaming, etc)",
@@ -94,9 +110,13 @@ def render_motivation_analysis(df):
         "Other"
     ]
 
-    # Colors for anxiety levels
     colors = ['rgb(173, 216, 235)', 'rgb(135, 206, 235)',
               'rgb(255, 160, 122)', 'rgb(255, 99, 71)']
+
+    PEOPLE_PER_MARKER = 5  # Number of people represented by each marker
+
+    # Track legend entries
+    legend_entries = set()
 
     # Plot each category
     for idx, earnings in enumerate(categories):
@@ -108,39 +128,90 @@ def render_motivation_analysis(df):
                     (motivation_data['anxiety_level'] == anxiety_level)
                 ]
 
-                count = data['count'].iloc[0] if not data.empty else 0
+                if len(data) > 0:
+                    total_count = data['count'].iloc[0]
 
-                if count > 0:
-                    x_positions, y_positions = generate_random_circle_positions(
-                        count, radius=0.4, center_x=idx, center_y=0
-                    )
+                    if total_count > 0:
+                        # Calculate number of markers needed
+                        full_markers = total_count // PEOPLE_PER_MARKER
+                        remainder = total_count % PEOPLE_PER_MARKER
+                        total_markers = full_markers + \
+                            (1 if remainder > 0 else 0)
 
-                    is_employed = employment == 'Employed'
-                    marker_symbol = 'circle' if is_employed else 'triangle-up'
+                        if total_markers > 0:
+                            x_positions, y_positions = generate_random_circle_positions(
+                                total_markers, radius=0.4, center_x=idx, center_y=0
+                            )
 
-                    fig.add_trace(go.Scatter(
-                        x=x_positions,
-                        y=y_positions,
-                        mode='markers',
-                        name=f"{employment} - Anxiety Level {anxiety_level}",
-                        marker=dict(
-                            size=12,
-                            symbol=marker_symbol,
-                            color=colors[anxiety_level],
-                            line=dict(color='white', width=1)
-                        ),
-                        showlegend=(idx == 0),
-                        hovertemplate=(
-                            f'Category: {earnings}<br>'
-                            f'Employment: {employment}<br>'
-                            f'Anxiety Level: {anxiety_level}'
-                            '<extra></extra>'
-                        )
-                    ))
+                            marker_symbol = get_marker_symbol(employment)
 
-    # Update layout with transparent background
+                            # Create legend key
+                            legend_key = f"{employment}-{anxiety_level}"
+                            show_in_legend = legend_key not in legend_entries
+
+                            # Add markers for groups of 5
+                            if full_markers > 0:
+                                fig.add_trace(go.Scatter(
+                                    x=x_positions[:full_markers],
+                                    y=y_positions[:full_markers],
+                                    mode='markers',
+                                    name=f"{
+                                        employment} - Anxiety Level {anxiety_level}",
+                                    marker=dict(
+                                        size=15,  # Larger markers for full groups
+                                        symbol=marker_symbol,
+                                        color=colors[anxiety_level],
+                                        line=dict(color='white', width=1)
+                                    ),
+                                    showlegend=bool(show_in_legend),
+                                    hovertemplate=(
+                                        f'Category: {earnings}<br>'
+                                        f'Employment: {employment}<br>'
+                                        f'Anxiety Level: {anxiety_level}<br>'
+                                        f'Number of People: {
+                                            PEOPLE_PER_MARKER}'
+                                        '<extra></extra>'
+                                    )
+                                ))
+                                legend_entries.add(legend_key)
+
+                            # Add marker for remainder (if any)
+                            if remainder > 0:
+                                show_remainder_legend = bool(
+                                    show_in_legend and full_markers == 0)
+                                fig.add_trace(go.Scatter(
+                                    x=x_positions[full_markers:],
+                                    y=y_positions[full_markers:],
+                                    mode='markers',
+                                    name=f"{
+                                        employment} - Anxiety Level {anxiety_level}",
+                                    marker=dict(
+                                        size=12,  # Smaller markers for remainder
+                                        symbol=marker_symbol,
+                                        color=colors[anxiety_level],
+                                        line=dict(color='white', width=1)
+                                    ),
+                                    showlegend=show_remainder_legend,
+                                    hovertemplate=(
+                                        f'Category: {earnings}<br>'
+                                        f'Employment: {employment}<br>'
+                                        f'Anxiety Level: {anxiety_level}<br>'
+                                        f'Number of People: {remainder}'
+                                        '<extra></extra>'
+                                    )
+                                ))
+                                if show_remainder_legend:
+                                    legend_entries.add(legend_key)
+
+    # Update layout
     fig.update_layout(
-        title='Gaming Motivation by Employment Status and Anxiety Level',
+        title={
+            'text': 'Gaming Motivation by Employment Status and Anxiety Level',
+            'y': 0.95,
+            'x': 0.5,
+            'xanchor': 'center',
+            'yanchor': 'top'
+        },
         xaxis=dict(
             ticktext=categories,
             tickvals=list(range(len(categories))),
@@ -156,8 +227,10 @@ def render_motivation_analysis(df):
         ),
         showlegend=True,
         legend=dict(
-            title=dict(text='Employment Status & Anxiety Level',
-                       font=dict(color='white')),
+            title=dict(
+                text='Employment Status & Anxiety Level',
+                font=dict(color='white')
+            ),
             font=dict(color='white'),
             itemsizing='constant',
             bgcolor='rgba(0,0,0,0)'
@@ -166,7 +239,9 @@ def render_motivation_analysis(df):
         paper_bgcolor='rgba(0,0,0,0)',
         height=600,
         font=dict(color='white'),
-        title_font_color='white'
+        title_font_color='white',
+        margin=dict(t=100, l=50, r=50, b=50)
     )
 
+    # Display the chart
     st.plotly_chart(fig, use_container_width=True)
