@@ -88,3 +88,15 @@ def load_geojson():
     except Exception as e:
         st.error(f"Error loading GeoJSON data: {str(e)}")
         return None
+    
+def get_country_names(df):
+    """Get a mapping of country codes to names from the world GeoJSON"""
+    world_geo = load_geojson()
+    
+    if world_geo:
+        country_names = {
+            feature["id"]: feature["properties"]["name"]
+            for feature in world_geo["features"]
+        }
+        return country_names
+    return {}

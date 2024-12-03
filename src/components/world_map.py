@@ -5,154 +5,155 @@ from streamlit_folium import st_folium
 import branca.colormap as cm
 import pandas as pd
 from utils.data_processing import get_country_stats, load_geojson
+from shapely.geometry import shape
 
 
-# FIXME: Right now it has two color scales
-def render_world_map(df):
+def get_country_bounds(feature):
+    """Get the bounding box coordinates for a country"""
+    polygon = shape(feature["geometry"])
+    bounds = polygon.bounds
+    return [[bounds[1], bounds[0]], [bounds[3], bounds[2]]]
+
+
+def get_country_centroid(feature):
+    """Get the centroid coordinates for a country"""
+    polygon = shape(feature["geometry"])
+    centroid = polygon.centroid
+    return [centroid.y, centroid.x]
+
+
+def render_world_map(df, selected_country=None):
     """Render interactive world map visualization of gaming anxiety levels"""
-    # Get country statistics and GeoJSON data
     country_stats = get_country_stats(df)
     world_geo = load_geojson()
 
     if world_geo is None:
         st.error("Unable to load map data. Please check if the GeoJSON file exists.")
-        return None
+        return
 
-    # Create base map
+    map_center = [20, 0]
+    zoom_start = 2
+
+    if selected_country:
+        for feature in world_geo["features"]:
+            if feature["id"] == selected_country:
+                bounds = get_country_bounds(feature)
+                map_center = [
+                    (bounds[0][0] + bounds[1][0]) / 2,
+                    (bounds[0][1] + bounds[1][1]) / 2
+                ]
+                zoom_start = 4
+
     m = folium.Map(
-        location=[20, 0],
-        zoom_start=2,
+        location=map_center,
+        zoom_start=zoom_start,
         min_zoom=2,
         max_zoom=6,
-        tiles='cartodbpositron',
+        tiles="cartodbpositron",
         prefer_canvas=True,
-        world_copy_jump=True  # Enable proper wrapping
+        world_copy_jump=True,
     )
 
-    # Create color scale with red tones
-    vmin = country_stats['GAD_T'].min()
-    vmax = country_stats['GAD_T'].max()
+    if selected_country:
+        for feature in world_geo["features"]:
+            if feature["id"] == selected_country:
+                bounds = get_country_bounds(feature)
+                m.fit_bounds(bounds, padding=[20, 20])
 
+    vmin = country_stats["GAD_T"].min()
+    vmax = country_stats["GAD_T"].max()
     colormap = cm.LinearColormap(
-        colors=['#ffcdd2', '#ef9a9a', '#e57373',
-                '#ef5350', '#e53935', '#c62828'],
+        colors=["#FFF7BC", "#FED976", "#FEB24C", "#FD8D3C",
+                "#FC4E2A", "#E31A1C", "#BD0026", "#800026"],
         vmin=vmin,
         vmax=vmax,
-        caption='Anxiety Level'
+        caption="Anxiety Level",
     )
 
-    # Create a dictionary for quick country data lookup
-    country_data_dict = country_stats.set_index(
-        'Residence_ISO3').to_dict('index')
+    country_data_dict = {}
+    for feature in world_geo["features"]:
+        country_code = feature["id"]
+        country_name = feature["properties"]["name"]
+        if country_code in country_stats.set_index("Residence_ISO3").index:
+            country_data = country_stats[country_stats["Residence_ISO3"]
+                                         == country_code].iloc[0].to_dict()
+            country_data["name"] = country_name
+            country_data_dict[country_code] = country_data
 
-    # Add custom JavaScript to handle map wrapping
-    m.get_root().html.add_child(folium.Element("""
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                var map = document.querySelector('#map');
-                if (map) {
-                    map._fadeDuration = 0;
-                    map.options.fadeAnimation = false;
-                }
-            });
-        </script>
-    """))
+    country_features = folium.FeatureGroup(name="Countries")
 
-    # Create choropleth layer for consistent wrapping
-    choropleth = folium.Choropleth(
-        geo_data=world_geo,
-        name='base_choropleth',
-        data=country_stats,
-        columns=['Residence_ISO3', 'GAD_T'],
-        key_on='feature.id',
-        fill_color='YlOrRd',
-        fill_opacity=0,
-        line_opacity=0,
-        highlight=False,
-        smooth_factor=0
-    ).add_to(m)
-
-    # Add individual layers for each country
-    for feature in world_geo['features']:
-        country_code = feature['id']
+    for feature in world_geo["features"]:
+        country_code = feature["id"]
         if country_code in country_data_dict:
             data = country_data_dict[country_code]
-            anxiety_score = data['GAD_T']
+            anxiety_score = data["GAD_T"]
 
             tooltip = f"""
-                <div style='font-family: Arial; font-size: 12px; width: 200px'>
-                    <b>{feature['properties']['name']}</b><br>
-                    Anxiety Score: {anxiety_score:.1f}<br>
-                    Life Satisfaction: {data['SWL_T']:.1f}<br>
-                    Gaming Hours/Week: {data['Hours']:.1f}
+                <div style='font-family: Arial; font-size: 13px; width: 220px;
+                     background-color: rgba(255,255,255,0.9); padding: 10px;
+                     border-radius: 5px; box-shadow: 0 0 15px rgba(0,0,0,0.2)'>
+                    <div style='border-bottom: 2px solid #ddd; margin-bottom: 5px;
+                         padding-bottom: 5px; font-weight: bold; color: #333'>
+                        {data['name']}
+                    </div>
+                    <div style='color: #666; line-height: 1.5'>
+                        <b>Anxiety Score:</b> {anxiety_score:.2f}<br>
+                        <b>Life Satisfaction:</b> {data['SWL_T']:.2f}<br>
+                        <b>Gaming Hours/Week:</b> {data['Hours']:.1f}
+                    </div>
                 </div>
             """
 
-            # Create style function that captures the current anxiety score
-            def get_style_function(score):
-                return lambda x: {
-                    'fillColor': colormap(score),
-                    'fillOpacity': 0.7,
-                    'weight': 1,
-                    'color': '#666'
+            def style_function(x, score=anxiety_score, selected=country_code == selected_country):
+                return {
+                    "fillColor": colormap(score),
+                    "fillOpacity": 0.9 if selected else 0.75,
+                    "weight": 2 if selected else 1,
+                    "color": "#fff" if selected else "#666",
+                    "dashArray": "" if selected else "3",
                 }
 
-            folium.GeoJson(
+            geo_json = folium.GeoJson(
                 feature,
-                name=country_code,
-                style_function=get_style_function(anxiety_score),
-                tooltip=tooltip,
+                style_function=style_function,
                 highlight_function=lambda x: {
-                    'weight': 3,
-                    'color': '#fff',
-                    'fillOpacity': 0.9
-                }
-            ).add_to(m)
+                    "weight": 3,
+                    "color": "#fff",
+                    "dashArray": "",
+                    "fillOpacity": 0.9
+                },
+                tooltip=tooltip,
+            )
+
+            folium.Popup(data['name']).add_to(geo_json)
+            geo_json.add_to(country_features)
+
+            # Add standard map marker for selected country
+            if country_code == selected_country:
+                centroid = get_country_centroid(feature)
+                folium.Marker(
+                    location=centroid,
+                    popup=data['name'],
+                    icon=folium.Icon(color='red', icon='info-sign'),
+                ).add_to(m)
+
         else:
-            # Add white base for countries without data
             folium.GeoJson(
                 feature,
                 style_function=lambda x: {
-                    'fillColor': '#ffffff',
-                    'fillOpacity': 0.1,
-                    'weight': 1,
-                    'color': '#666'
-                }
-            ).add_to(m)
+                    "fillColor": "#f0f0f0",
+                    "fillOpacity": 0.15,
+                    "weight": 1,
+                    "color": "#999",
+                    "dashArray": "3",
+                },
+            ).add_to(country_features)
 
-    # Add the colormap to the map
+    country_features.add_to(m)
     colormap.add_to(m)
 
-    # Add minimap
-    minimap = plugins.MiniMap(toggle_display=True)
-    m.add_child(minimap)
-
-    # Custom CSS for smooth wrapping
-    st.markdown("""
-        <style>
-            .folium-map {
-                border-radius: 8px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
-            .leaflet-tile-container {
-                will-change: transform;
-                transform-style: preserve-3d;
-            }
-        </style>
-    """, unsafe_allow_html=True)
-
-    # Display map
-    map_data = st_folium(
+    st_folium(
         m,
         width="100%",
-        height=500,
-        returned_objects=["last_clicked"]
+        height=500
     )
-
-    # Handle click events
-    if map_data["last_clicked"] and "id" in map_data["last_clicked"]:
-        clicked_country = map_data["last_clicked"]["id"]
-        if clicked_country in country_data_dict:
-            return clicked_country
-
-    return None
