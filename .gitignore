@@ -45,3 +45,8 @@ logs/
 
 # End of file newline fixer
 *.swp  # Editor swap files
+
+notebooks/
+!notebooks/01_data_exploration.ipynb
+!notebooks/02_data_cleaning.ipynb
+!notebooks/03_data_visualization.ipynb

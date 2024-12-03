@@ -3,10 +3,12 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import streamlit as st
+import json
 
 # Get the project root directory
 ROOT_DIR = Path(__file__).parent.parent.parent
 CSV_FILE_PATH = ROOT_DIR / "data" / "processed" / "processed_data.csv"
+GEO_JSON_PATH = ROOT_DIR / "data" / "raw" / "world-countries.json"
 
 
 @st.cache_data
@@ -75,3 +77,14 @@ def get_platform_stats(df):
         "count"
     ].transform(lambda x: x / x.sum() * 100)
     return platform_stats
+
+
+@st.cache_data
+def load_geojson():
+    """Load and cache the world GeoJSON data"""
+    try:
+        with open(GEO_JSON_PATH, 'r') as f:
+            return json.load(f)
+    except Exception as e:
+        st.error(f"Error loading GeoJSON data: {str(e)}")
+        return None

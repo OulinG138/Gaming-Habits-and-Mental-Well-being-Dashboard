@@ -13,31 +13,26 @@ def render(df):
     age_container = st.container()
     motivation_container = st.container()
 
-    # Create two columns for layout
-    left_col, right_col = st.columns([2, 1])
+    with map_container:
+        # World map section
+        st.subheader("Global Gaming Anxiety Levels")
+        selected_country = render_world_map(df)
 
-    with left_col:
-        with map_container:
-            # World map section
-            st.subheader("Global Gaming Anxiety Levels")
-            selected_country = render_world_map(df)
+    # Update data based on country selection
+    if selected_country:
+        filtered_df = df[df["Residence_ISO3"] == selected_country]
+    else:
+        filtered_df = df
 
-        # Update data based on country selection
-        if selected_country:
-            filtered_df = df[df["Residence_ISO3"] == selected_country]
-        else:
-            filtered_df = df
+    with age_container:
+        # Age group analysis below map
+        st.subheader("Age Group Analysis")
+        render_age_analysis(filtered_df)
 
-        with age_container:
-            # Age group analysis below map
-            st.subheader("Age Group Analysis")
-            render_age_analysis(filtered_df)
-
-    with right_col:
-        with motivation_container:
-            # Player motivation analysis
-            st.subheader("Player Motivation")
-            render_motivation_analysis(filtered_df)
+    with motivation_container:
+        # Player motivation analysis
+        st.subheader("Player Motivation")
+        render_motivation_analysis(filtered_df)
 
     # Bottom section - Network visualization
     st.subheader("Relationships Between Variables")
@@ -55,7 +50,8 @@ def render(df):
 
     with col2:
         st.write("Anxiety Levels")
-        selected_anxiety = st.selectbox("Select anxiety range", anxiety_circles)
+        selected_anxiety = st.selectbox(
+            "Select anxiety range", anxiety_circles)
 
     with col3:
         st.write("Age Groups")
