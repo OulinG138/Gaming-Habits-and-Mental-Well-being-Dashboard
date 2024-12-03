@@ -17,13 +17,13 @@ def render_life_quality_analysis(df, anxiety_type="general"):
     )
 
     # Determine which anxiety score to use
-    anxiety_col = "GAD_Total" if anxiety_type == "general" else "SPIN_T"
+    anxiety_col = "GAD_T" if anxiety_type == "general" else "SPIN_T"
     anxiety_label = "General Anxiety" if anxiety_type == "general" else "Social Anxiety"
 
     # Add scatter plot
     fig.add_trace(
         go.Scatter(
-            x=df["SWL_Total"],
+            x=df["SWL_T"],
             y=df[anxiety_col],
             mode="markers",
             marker=dict(
@@ -39,12 +39,12 @@ def render_life_quality_analysis(df, anxiety_type="general"):
     )
 
     # Add trend line
-    z = np.polyfit(df["SWL_Total"], df[anxiety_col], 1)
+    z = np.polyfit(df["SWL_T"], df[anxiety_col], 1)
     p = np.poly1d(z)
     fig.add_trace(
         go.Scatter(
-            x=df["SWL_Total"],
-            y=p(df["SWL_Total"]),
+            x=df["SWL_T"],
+            y=p(df["SWL_T"]),
             mode="lines",
             name="Trend",
             line=dict(color="red", dash="dash"),
@@ -64,7 +64,7 @@ def render_life_quality_analysis(df, anxiety_type="general"):
 
     fig.add_trace(
         go.Histogram(
-            x=df["SWL_Total"],
+            x=df["SWL_T"],
             name="Life Satisfaction",
             marker_color="green",
             opacity=0.7,
@@ -92,12 +92,14 @@ def render_life_quality_analysis(df, anxiety_type="general"):
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.metric(f"{anxiety_label} Score", f"{df[anxiety_col].mean():.1f}", delta=None)
+        st.metric(f"{anxiety_label} Score", f"{
+                  df[anxiety_col].mean():.1f}", delta=None)
 
     with col2:
         st.metric(
-            "Life Satisfaction Score", f"{df['SWL_Total'].mean():.1f}", delta=None
+            "Life Satisfaction Score", f"{df['SWL_T'].mean():.1f}", delta=None
         )
 
     with col3:
-        st.metric("Average Gaming Hours", f"{df['Hours'].mean():.1f}", delta=None)
+        st.metric("Average Gaming Hours", f"{
+                  df['Hours'].mean():.1f}", delta=None)

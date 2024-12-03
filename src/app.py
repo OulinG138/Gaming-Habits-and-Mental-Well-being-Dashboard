@@ -3,10 +3,22 @@ import streamlit as st
 from pages import game_analysis, player_analysis, quality_analysis
 from utils.data_processing import load_data
 
-# Page configuration
 st.set_page_config(
-    page_title="Gaming Habits and Mental Well-being", page_icon="🎮", layout="wide"
+    page_title="Gaming Habits and Mental Well-being",
+    page_icon="🎮",
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
+
+# Hide sidebar and its toggle button completely
+st.markdown("""
+    <style>
+        section[data-testid="stSidebar"][aria-expanded="true"]{
+            display: none;
+        }
+    </style>
+    """,
+            unsafe_allow_html=True)
 
 
 def main():

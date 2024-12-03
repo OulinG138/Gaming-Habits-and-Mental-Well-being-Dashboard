@@ -3,10 +3,12 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import streamlit as st
+import json
 
 # Get the project root directory
 ROOT_DIR = Path(__file__).parent.parent.parent
 CSV_FILE_PATH = ROOT_DIR / "data" / "processed" / "processed_data.csv"
+GEO_JSON_PATH = ROOT_DIR / "data" / "raw" / "world-countries.json"
 
 
 @st.cache_data
@@ -38,12 +40,6 @@ def load_data():
         )
     )
 
-    # Calculate anxiety scores
-    df["GAD_Total"] = df[["GAD1", "GAD2", "GAD3", "GAD4", "GAD5", "GAD6", "GAD7"]].sum(
-        axis=1
-    )
-    df["SWL_Total"] = df[["SWL1", "SWL2", "SWL3", "SWL4", "SWL5"]].sum(axis=1)
-
     return df
 
 
@@ -53,8 +49,8 @@ def get_country_stats(df):
         df.groupby("Residence_ISO3")
         .agg(
             {
-                "GAD_Total": "mean",
-                "SWL_Total": "mean",
+                "GAD_T": "mean",
+                "SWL_T": "mean",
                 "SPIN_T": "mean",
                 "Hours": "mean",
             }
@@ -67,7 +63,7 @@ def get_age_stats(df):
     """Calculate age group statistics"""
     return (
         df.groupby("AgeGroup")
-        .agg({"Hours": "mean", "GAD_Total": "mean", "SWL_Total": "mean"})
+        .agg({"Hours": "mean", "GAD_T": "mean", "SWL_T": "mean"})
         .reset_index()
     )
 
@@ -81,3 +77,26 @@ def get_platform_stats(df):
         "count"
     ].transform(lambda x: x / x.sum() * 100)
     return platform_stats
+
+
+@st.cache_data
+def load_geojson():
+    """Load and cache the world GeoJSON data"""
+    try:
+        with open(GEO_JSON_PATH, 'r') as f:
+            return json.load(f)
+    except Exception as e:
+        st.error(f"Error loading GeoJSON data: {str(e)}")
+        return None
+    
+def get_country_names(df):
+    """Get a mapping of country codes to names from the world GeoJSON"""
+    world_geo = load_geojson()
+    
+    if world_geo:
+        country_names = {
+            feature["id"]: feature["properties"]["name"]
+            for feature in world_geo["features"]
+        }
+        return country_names
+    return {}
