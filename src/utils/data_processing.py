@@ -89,7 +89,7 @@ def load_geojson():
         st.error(f"Error loading GeoJSON data: {str(e)}")
         return None
     
-def get_country_names(df):
+def get_country_names():
     """Get a mapping of country codes to names from the world GeoJSON"""
     world_geo = load_geojson()
     
