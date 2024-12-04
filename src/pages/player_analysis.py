@@ -10,7 +10,7 @@ def render(df):
     country_circles = sorted(df["Residence_ISO3"].unique())
 
     # Get the mapping of country codes to names
-    country_names = get_country_names(df)
+    country_names = get_country_names()
 
     # Place the select box at the top
     st.subheader("Global Gaming Anxiety Levels")
