@@ -36,35 +36,23 @@ def render(df):
         else df
     )
 
+    st.divider()
+
     age_container = st.container()
     with age_container:
         st.subheader("Age Group Analysis")
         render_age_analysis(filtered_df)
+
+    st.divider()
 
     motivation_container = st.container()
     with motivation_container:
         st.subheader("Player Motivation")
         render_motivation_analysis(filtered_df)
 
-    # Bottom section - Network visualization
-    st.subheader("Relationships Between Variables")
-    country_circles = df["Residence_ISO3"].unique()
-    age_circles = df["AgeGroup"].unique()
-    anxiety_circles = ["0-20", "20-40", "40-60", "60-80", "80-100"]
+    st.divider()
 
-    # Create clickable circles
-    st.write("Click circles to explore relationships:")
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        st.write("Countries")
-        selected_country = st.selectbox("Select country", country_circles)
-
-    with col2:
-        st.write("Anxiety Levels")
-        selected_anxiety = st.selectbox(
-            "Select anxiety range", anxiety_circles)
-
-    with col3:
-        st.write("Age Groups")
-        selected_age = st.selectbox("Select age group", age_circles)
+    bubble_container = st.container()
+    with bubble_container:
+        st.subheader("Relationship between Age, Country and Anxiety Score")
+        pass
