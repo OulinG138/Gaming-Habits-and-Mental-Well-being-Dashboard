@@ -40,7 +40,7 @@ def render_age_analysis(df):
     # Update layout
     fig.update_layout(
         title={
-            'text': "Anxiety Scores by Age Group and Time Spent Gaming",
+            'text': "Average Anxiety Scores by Age Group and Time Spent Gaming",
             'y': 0.9,
             'x': 0.5,
             'xanchor': 'center',
