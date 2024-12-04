@@ -295,3 +295,5 @@ def update_chart(click_data):
 # Run Dash app
 if __name__ == "__main__":
     app.run_server(debug=True)
+
+# for push
