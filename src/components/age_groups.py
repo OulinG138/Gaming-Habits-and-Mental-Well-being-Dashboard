@@ -35,7 +35,7 @@ def render_age_analysis(df):
             textposition="outside",
             hovertemplate="<b>Age Group:</b> %{x}<br>" +
                          "<b>Hours per Week:</b> " + time_spent + "<br>" +
-                         "<b>Anxiety Score:</b> %{y:.1f}<extra></extra>"
+                         "<b>Average Anxiety Score:</b> %{y:.1f}<extra></extra>"
         ))
     # Update layout
     fig.update_layout(
@@ -52,7 +52,7 @@ def render_age_analysis(df):
             'font': {'color': 'white'}
         },
         yaxis_title={
-            'text': "Anxiety Score",
+            'text': "Average Anxiety Score",
             'font': {'color': 'white'}
         },
         xaxis={
