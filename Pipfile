@@ -18,8 +18,9 @@ streamlit-folium = "*"
 branca = "*"
 streamlit-keplergl = "*"
 watchdog = "*"
-streamlit-plotly-events = "*"
 shapely = "*"
+streamlit-plotly-events = "*"
+streamlit-agraph = "*"
 
 [dev-packages]
 black = "*"

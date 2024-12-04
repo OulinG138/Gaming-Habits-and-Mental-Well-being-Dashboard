@@ -2,6 +2,7 @@ import streamlit as st
 from components.age_groups import render_age_analysis
 from components.player_motivation import render_motivation_analysis
 from components.world_map import render_world_map
+from components.bubble_chart import render_relationship_analysis
 from utils.data_processing import get_country_names
 
 
@@ -36,14 +37,14 @@ def render(df):
         else df
     )
 
-    st.divider()
+    st.empty()
 
     age_container = st.container()
     with age_container:
         st.subheader("Age Group Analysis")
         render_age_analysis(filtered_df)
 
-    st.divider()
+    st.empty()
 
     motivation_container = st.container()
     with motivation_container:
@@ -55,4 +56,4 @@ def render(df):
     bubble_container = st.container()
     with bubble_container:
         st.subheader("Relationship between Age, Country and Anxiety Score")
-        pass
+        render_relationship_analysis(df)
