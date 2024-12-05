@@ -108,7 +108,7 @@ def render_game_bubble_chart(df):
                 fig.add_trace(go.Scatter(
                     x=[game_name],
                     y=[size/2 + 0.15],
-                    text=f"{game_name}<br>{row['count']} players",
+                    text=f"{row['count']} players",
                     mode="text",
                     textposition="top center",
                     showlegend=False,
@@ -122,15 +122,7 @@ def render_game_bubble_chart(df):
     # Update layout
     fig.update_layout(
         template="plotly_dark",
-        title={
-            'text': "Select a Game to Focus",
-            'y': 0.95,
-            'x': 0.5,
-            'xanchor': 'center',
-            'yanchor': 'top',
-            'font': dict(size=24)
-        },
-        height=800,
+        height=600,
         width=1400,
         plot_bgcolor='rgba(17,17,17,1)',
         paper_bgcolor='rgba(17,17,17,1)',
@@ -156,7 +148,7 @@ def render_game_bubble_chart(df):
             zeroline=False,
             range=[-0.8, 1.5]
         ),
-        margin=dict(l=50, r=50, t=100, b=100),
+        margin=dict(l=50, r=50, t=0, b=100),
         showlegend=False
     )
 

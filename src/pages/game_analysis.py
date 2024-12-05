@@ -1,6 +1,6 @@
 import streamlit as st
 
-from components.platform_chart import render_game_bubble_chart
+from components.game_chart import render_game_bubble_chart
 from components.score_radar import render_score_radar
 from components.sunburst_chart import render_playstyle_anxiety_sunburst_chart
 
