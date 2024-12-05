@@ -1,85 +1,173 @@
 import pandas as pd
+import numpy as np
 import plotly.graph_objects as go
 import streamlit as st
+from utils.data_processing import get_game_logo
+
 
 def render_game_bubble_chart(df):
-    """Render a bubble chart where the circles are ordered in decreasing order by count."""
-
+    """Render a bubble chart where the logos are ordered in decreasing order by count."""
     # Group data by game and count the number of players
     game_stats = df.groupby("Game").size().reset_index(name="count")
-    
+
     # Sort the games in decreasing order by count
-    game_stats = game_stats.sort_values(by='count', ascending=False).reset_index(drop=True)
+    game_stats = game_stats.sort_values(
+        by='count', ascending=False).reset_index(drop=True)
 
     # Create a dropdown for selecting a game
-    game_options = ["All"] + game_stats["Game"].tolist()  # Include "All" to show the full chart
+    game_options = ["All"] + game_stats["Game"].tolist()
     selected_game = st.selectbox("Select a game to focus on:", game_options)
 
     # Determine data to display and dynamically adjust sizes
     if selected_game == "All":
-        filtered_stats = game_stats  # Show all games
-        scaled_sizes = game_stats["count"]  # Use the original counts
-        sizeref = 2.0 * max(game_stats["count"]) / 100**2  # Calculate sizeref for all games
+        filtered_stats = game_stats
+        scaled_sizes = game_stats["count"]
+        sizeref = 2.0 * max(game_stats["count"]) / 100**2
+        padding_games = pd.DataFrame({
+            'Game': ['PAD_LEFT', 'PAD_RIGHT'],
+            'count': [0, 0]
+        })
+        filtered_stats = pd.concat([padding_games.iloc[[
+                                   0]], filtered_stats, padding_games.iloc[[1]]]).reset_index(drop=True)
     else:
-        # Find the index of the selected game in the sorted game_stats
-        clicked_index = game_stats[game_stats["Game"] == selected_game].index[0]
+        clicked_index = game_stats[game_stats["Game"]
+                                   == selected_game].index[0]
+        total_games = len(game_stats)
+        zoom_padding = 1
 
-        # Include neighbors around the selected game
-        zoom_padding = 1  # Number of neighboring games to show
-        x_start = max(0, clicked_index - zoom_padding)
-        x_end = min(len(game_stats) - 1, clicked_index + zoom_padding)
+        # Modified filtering logic to handle edge cases
+        if clicked_index <= zoom_padding:
+            # Left edge case
+            x_start = 0
+            x_end = min(2 * zoom_padding, total_games - 1)
+        elif clicked_index >= total_games - zoom_padding - 1:
+            # Right edge case
+            x_start = max(total_games - 2 * zoom_padding - 1, 0)
+            x_end = total_games - 1
+        else:
+            # Middle case
+            x_start = clicked_index - zoom_padding
+            x_end = clicked_index + zoom_padding
 
-        filtered_stats = game_stats.iloc[x_start:x_end + 1]
+        filtered_stats = game_stats.iloc[x_start:x_end + 1].copy()
 
-        # Scale sizes such that the selected game has a size of 100
+        # Add padding games on both sides
+        padding_games = pd.DataFrame({
+            'Game': ['PAD_LEFT', 'PAD_RIGHT'],
+            'count': [0, 0]
+        })
+        filtered_stats = pd.concat([padding_games.iloc[[
+                                   0]], filtered_stats, padding_games.iloc[[1]]]).reset_index(drop=True)
+
         selected_game_count = game_stats.loc[clicked_index, "count"]
         scaled_sizes = filtered_stats["count"] / selected_game_count * 100
+        sizeref = 2.0 / 10**2
 
-        # Recalculate sizeref to ensure the selected game always has size 100
-        sizeref = 2.0 / 10**2  # Fixed sizeref for scaling based on size 100
-
-    # Create the bubble chart
+    # Create figure
     fig = go.Figure()
 
-    # Add bubbles for each filtered game
-    fig.add_trace(
-        go.Scatter(
-            x=filtered_stats["Game"],           # Game names on the x-axis
-            y=[0] * len(filtered_stats),        # Align all bubbles horizontally
-            mode="markers+text",
-            marker=dict(
-                size=scaled_sizes,              # Dynamically adjusted size
-                sizemode="area",                # Use area to represent size
-                sizeref=sizeref,                # Dynamically calculated sizeref
-                color=filtered_stats["count"],  # Optional: color based on count
-                showscale=False,                # Disable the color scale
-            ),
-            text=filtered_stats["Game"],         # Add game names as text
-            textposition="top center",
-            hoverinfo="x+text",                  # Display x (game name) and text on hover
-        )
-    )
+    # Add base trace
+    fig.add_trace(go.Scatter(
+        x=filtered_stats["Game"],
+        y=[0] * len(filtered_stats),
+        mode="markers",
+        marker=dict(size=1, opacity=0),
+        hoverinfo="none",
+        showlegend=False
+    ))
 
-    # Customize layout
+    # Add images and text for each game
+    max_count = filtered_stats["count"].max()
+    for idx, row in filtered_stats.iterrows():
+        game_name = row["Game"]
+        if game_name not in ['PAD_LEFT', 'PAD_RIGHT']:  # Skip padding games
+            logo_url = get_game_logo(game_name)
+
+            if logo_url:
+                relative_size = row["count"] / max_count
+                base_size = 1.5
+                size = base_size * np.sqrt(relative_size)
+
+                fig.add_layout_image(
+                    dict(
+                        source=logo_url,
+                        x=game_name,
+                        y=0,
+                        xref="x",
+                        yref="y",
+                        sizex=size,
+                        sizey=size,
+                        xanchor="center",
+                        yanchor="middle",
+                        sizing="contain",
+                        layer="above",
+                        opacity=1
+                    )
+                )
+
+                fig.add_trace(go.Scatter(
+                    x=[game_name],
+                    y=[size/2 + 0.15],
+                    text=f"{game_name}<br>{row['count']} players",
+                    mode="text",
+                    textposition="top center",
+                    showlegend=False,
+                    hoverinfo="none",
+                    textfont=dict(
+                        color='white',
+                        size=14
+                    )
+                ))
+
+    # Update layout
     fig.update_layout(
-        title="Select a Game to Focus",
-        title_x=0.5,
-        height=500,
+        template="plotly_dark",
+        title={
+            'text': "Select a Game to Focus",
+            'y': 0.95,
+            'x': 0.5,
+            'xanchor': 'center',
+            'yanchor': 'top',
+            'font': dict(size=24)
+        },
+        height=800,
+        width=1400,
+        plot_bgcolor='rgba(17,17,17,1)',
+        paper_bgcolor='rgba(17,17,17,1)',
         xaxis=dict(
             title="Game Names",
             showgrid=False,
             zeroline=False,
-            showline=False,
-            tickangle=45,  # Rotate game names for better readability
+            showline=True,
+            linecolor='rgba(255,255,255,0.2)',
+            tickangle=45,
+            tickfont=dict(
+                color='white',
+                size=12
+            ),
+            ticktext=filtered_stats[~filtered_stats["Game"].isin(
+                ['PAD_LEFT', 'PAD_RIGHT'])]["Game"],
+            tickvals=filtered_stats[~filtered_stats["Game"].isin(
+                ['PAD_LEFT', 'PAD_RIGHT'])]["Game"],
         ),
         yaxis=dict(
-            visible=False,  # Hide the y-axis
+            visible=False,
+            showgrid=False,
+            zeroline=False,
+            range=[-0.8, 1.5]
         ),
-        margin=dict(l=50, r=50, t=50, b=50),
-        plot_bgcolor="rgba(0, 0, 0, 0)",  # Transparent background
+        margin=dict(l=50, r=50, t=100, b=100),
+        showlegend=False
     )
 
     # Display the chart
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        config={
+            'displayModeBar': False,
+            'scrollZoom': False
+        }
+    )
 
     return selected_game
