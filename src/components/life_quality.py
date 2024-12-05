@@ -172,7 +172,10 @@ def render_life_quality_analysis(df):
                     nbinsx=30,
                     histnorm='percent',
                     marker_color=color,
-                    opacity=0.6
+                    opacity=0.6,
+                    hovertemplate='<span style="color: ' + color + '"><b>' + name + '</b></span><br>' +
+                    'Score: %{x:.1f}<br>' +
+                    'Percentage: %{y:.1f}%<extra></extra>'
                 )
             )
 
@@ -201,8 +204,9 @@ def render_life_quality_analysis(df):
                 x=list(avg_scores.keys()),
                 y=list(avg_scores.values()),
                 marker_color=['rgb(99, 110, 250)',
-                              'rgb(239, 85, 59)',
-                              'rgb(0, 204, 150)']
+                              'rgb(239, 85, 59)', 'rgb(0, 204, 150)'],
+                hovertemplate='<span style="color: %{marker.color}"><b>%{x}</b></span><br>' +
+                'Average Score: %{y:.1f}<extra></extra>'
             )
         ])
 
@@ -212,7 +216,7 @@ def render_life_quality_analysis(df):
             yaxis_title='Average Score (0-100)',
             height=500,
             showlegend=False,
-            yaxis=dict(range=[0, 100])  # Fixed y-axis range
+            yaxis=dict(range=[0, 100])
         )
 
         st.plotly_chart(fig_bar, use_container_width=True)
@@ -269,7 +273,7 @@ def render_life_quality_analysis(df):
         st.metric(
             "Average Age",
             f"{filtered_stats['Age']:.1f}",
-            f"{filtered_stats['Age'] - full_stats['Age']                :.1f}" if is_filtered else None
+            f"{filtered_stats['Age'] - full_stats['Age']:.1f}" if is_filtered else None
         )
 
     with col3:
