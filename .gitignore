@@ -45,3 +45,5 @@ logs/
 
 # End of file newline fixer
 *.swp  # Editor swap files
+
+notebooks/

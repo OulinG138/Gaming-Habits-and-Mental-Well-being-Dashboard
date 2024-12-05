@@ -1,87 +1,159 @@
-import plotly.express as px
 import streamlit as st
-from streamlit_plotly_events import plotly_events
+import folium
+from folium import plugins
+from streamlit_folium import st_folium
+import branca.colormap as cm
+import pandas as pd
+from utils.data_processing import get_country_stats, load_geojson
+from shapely.geometry import shape
 
-from utils.data_processing import get_country_stats
+
+def get_country_bounds(feature):
+    """Get the bounding box coordinates for a country"""
+    polygon = shape(feature["geometry"])
+    bounds = polygon.bounds
+    return [[bounds[1], bounds[0]], [bounds[3], bounds[2]]]
 
 
-def render_world_map(df):
-    """Render interactive world map visualization"""
+def get_country_centroid(feature):
+    """Get the centroid coordinates for a country"""
+    polygon = shape(feature["geometry"])
+    centroid = polygon.centroid
+    return [centroid.y, centroid.x]
 
-    # Create fixed-size container
-    map_container = st.empty()
 
-    # Get country statistics
+def render_world_map(df, selected_country=None):
+    """Render interactive world map visualization of gaming anxiety levels"""
     country_stats = get_country_stats(df)
+    world_geo = load_geojson()
 
-    # Create choropleth map
-    fig = px.choropleth(
-        country_stats,
-        locations="Residence_ISO3",
-        color="GAD_Total",
-        color_continuous_scale="Reds",
-        range_color=(0, country_stats["GAD_Total"].max()),
-        labels={"GAD_Total": "Anxiety"},
+    if world_geo is None:
+        st.error("Unable to load map data. Please check if the GeoJSON file exists.")
+        return
+
+    map_center = [20, 0]
+    zoom_start = 2
+
+    if selected_country:
+        for feature in world_geo["features"]:
+            if feature["id"] == selected_country:
+                bounds = get_country_bounds(feature)
+                map_center = [
+                    (bounds[0][0] + bounds[1][0]) / 2,
+                    (bounds[0][1] + bounds[1][1]) / 2
+                ]
+                zoom_start = 4
+
+    m = folium.Map(
+        location=map_center,
+        zoom_start=zoom_start,
+        min_zoom=2,
+        max_zoom=6,
+        tiles="cartodbpositron",
+        prefer_canvas=True,
+        world_copy_jump=True,
     )
 
-    # Update layout
-    fig.update_layout(
-        autosize=False,
-        height=300,  # Fixed height
-        width=800,  # Fixed width
-        margin=dict(l=0, r=0, t=0, b=0, pad=0),
-        geo=dict(
-            showframe=False,
-            showcoastlines=True,
-            projection_type="equirectangular",
-            showland=True,
-            showcountries=True,
-            landcolor="rgb(243, 243, 243)",
-            countrycolor="rgb(204, 204, 204)",
-        ),
-        coloraxis_colorbar=dict(
-            title=dict(text="Anxiety", side="right"),
-            thicknessmode="pixels",
-            thickness=15,
-            lenmode="pixels",
-            len=200,
-            yanchor="middle",
-            y=0.5,
-            xanchor="right",
-            x=0.98,
-            ticks="outside",
-            tickwidth=1,
-            ticklen=5,
-            tickformat=".1f",
-            orientation="v",
-        ),
+    if selected_country:
+        for feature in world_geo["features"]:
+            if feature["id"] == selected_country:
+                bounds = get_country_bounds(feature)
+                m.fit_bounds(bounds, padding=[20, 20])
+
+    vmin = country_stats["GAD_T"].min()
+    vmax = country_stats["GAD_T"].max()
+    colormap = cm.LinearColormap(
+        colors=["#FFF7BC", "#FED976", "#FEB24C", "#FD8D3C",
+                "#FC4E2A", "#E31A1C", "#BD0026", "#800026"],
+        vmin=vmin,
+        vmax=vmax,
+        caption="Anxiety Level",
     )
 
-    # Display the map and get click events
-    with map_container:
-        clicked_point = plotly_events(fig, click_event=True, override_height=300)
+    country_data_dict = {}
+    for feature in world_geo["features"]:
+        country_code = feature["id"]
+        country_name = feature["properties"]["name"]
+        if country_code in country_stats.set_index("Residence_ISO3").index:
+            country_data = country_stats[country_stats["Residence_ISO3"]
+                                         == country_code].iloc[0].to_dict()
+            country_data["name"] = country_name
+            country_data_dict[country_code] = country_data
 
-    # Handle click events
-    if clicked_point:
-        # Print the click data to debug
-        st.write("Debug - Click data:", clicked_point)
+    country_features = folium.FeatureGroup(name="Countries")
 
-        # Extract the country code from the clicked point
-        try:
-            if "points" in clicked_point[0]:
-                return clicked_point[0]["points"][0]["location"]
-            elif "customdata" in clicked_point[0]:
-                return clicked_point[0]["customdata"][0]
-            elif "locationdata" in clicked_point[0]:
-                return clicked_point[0]["locationdata"]
-            else:
-                st.warning(
-                    "Could not detect country from click. Click data structure:",
-                    clicked_point,
-                )
-                return None
-        except Exception as e:
-            st.warning(f"Error processing click: {str(e)}")
-            return None
+    for feature in world_geo["features"]:
+        country_code = feature["id"]
+        if country_code in country_data_dict:
+            data = country_data_dict[country_code]
+            anxiety_score = data["GAD_T"]
 
-    return None
+            tooltip = f"""
+                <div style='font-family: Arial; font-size: 13px; width: 220px;
+                     background-color: rgba(255,255,255,0.9); padding: 10px;
+                     border-radius: 5px; box-shadow: 0 0 15px rgba(0,0,0,0.2)'>
+                    <div style='border-bottom: 2px solid #ddd; margin-bottom: 5px;
+                         padding-bottom: 5px; font-weight: bold; color: #333'>
+                        {data['name']}
+                    </div>
+                    <div style='color: #666; line-height: 1.5'>
+                        <b>Anxiety Score:</b> {anxiety_score:.2f}<br>
+                        <b>Life Satisfaction:</b> {data['SWL_T']:.2f}<br>
+                        <b>Gaming Hours/Week:</b> {data['Hours']:.1f}
+                    </div>
+                </div>
+            """
+
+            def style_function(x, score=anxiety_score, selected=country_code == selected_country):
+                return {
+                    "fillColor": colormap(score),
+                    "fillOpacity": 0.9 if selected else 0.75,
+                    "weight": 2 if selected else 1,
+                    "color": "#fff" if selected else "#666",
+                    "dashArray": "" if selected else "3",
+                }
+
+            geo_json = folium.GeoJson(
+                feature,
+                style_function=style_function,
+                highlight_function=lambda x: {
+                    "weight": 3,
+                    "color": "#fff",
+                    "dashArray": "",
+                    "fillOpacity": 0.9
+                },
+                tooltip=tooltip,
+            )
+
+            folium.Popup(data['name']).add_to(geo_json)
+            geo_json.add_to(country_features)
+
+            # Add standard map marker for selected country
+            if country_code == selected_country:
+                centroid = get_country_centroid(feature)
+                folium.Marker(
+                    location=centroid,
+                    popup=data['name'],
+                    icon=folium.Icon(color='red', icon='info-sign'),
+                ).add_to(m)
+
+        else:
+            folium.GeoJson(
+                feature,
+                style_function=lambda x: {
+                    "fillColor": "#f0f0f0",
+                    "fillOpacity": 0.15,
+                    "weight": 1,
+                    "color": "#999",
+                    "dashArray": "3",
+                },
+            ).add_to(country_features)
+
+    country_features.add_to(m)
+    colormap.add_to(m)
+
+    st_folium(
+        m,
+        width="100%",
+        height=500
+    )
