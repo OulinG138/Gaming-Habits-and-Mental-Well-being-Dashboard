@@ -10,7 +10,7 @@ def render(df):
 
     game_container = st.container()
     with game_container:
-        st.header("Gaming Platform Analysis")
+        st.header("Game Popularity and Engagement Visualization")
         selected_game = render_game_bubble_chart(df)
 
     st.empty()
