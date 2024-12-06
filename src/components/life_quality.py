@@ -12,7 +12,6 @@ def normalize_score(series):
 
 def render_life_quality_analysis(df):
     """Render the Quality of Life analysis page with interactive controls and visualizations"""
-    st.title("Quality of Life Analysis")
 
     # Normalize scores first
     df['GAD_T_norm'] = normalize_score(df['GAD_T'])
