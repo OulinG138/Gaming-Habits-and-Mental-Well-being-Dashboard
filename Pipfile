@@ -5,41 +5,22 @@ name = "pypi"
 
 [packages]
 dash = "*"
-gunicorn = "*"
 pandas = "*"
 numpy = "*"
-matplotlib = "*"
-seaborn = "*"
 plotly = "*"
 altair = "*"
+matplotlib = "*"
+seaborn = "*"
 streamlit = "*"
 folium = "*"
 streamlit-folium = "*"
 branca = "*"
-streamlit-keplergl = "*"
-watchdog = "*"
 shapely = "*"
-streamlit-plotly-events = "*"
-streamlit-agraph = "*"
+ipykernel = "*"
+watchdog = "*"
 
 [dev-packages]
-black = "*"
-pre-commit = "*"
+pip-check-reqs = "*"
 
 [requires]
-python_version = "3.12"
-
-[tool]
-black = {line-length = 88, target-version = ['py37'], include = '\.pyi?$', exclude = '''
-/(
-    \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-)/
-'''}
+python_version = "3.13"
