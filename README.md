@@ -12,28 +12,40 @@ This project is an interactive dashboard that visualizes the relationship betwee
 
 ## Project Structure
 ```
-STA313-Project/
-├── src/
-│   ├── app.py                 # Main application file
-│   ├── pages/                 # Page components
-│   │   ├── player_analysis.py
-│   │   ├── game_analysis.py
-│   │   └── quality_analysis.py
-│   ├── components/            # Reusable components
-│   │   ├── world_map.py
+├── assets
+│   └── game_logos
+├── data
+│   ├── processed
+│   │   └── processed_data.csv
+│   └── raw
+│       ├── Gaming Study Data.csv
+│       └── world-countries.json
+├── docs
+│   └── Data Column Descriptions.pdf
+├── notebooks
+│   ├── 01_data_exploration.ipynb
+│   ├── 02_data_cleaning.ipynb
+│   ├── 03_data_visualization.ipynb
+├── src
+│   ├── app.py
+│   ├── components
+│   │   ├── __init__.py
 │   │   ├── age_groups.py
+│   │   ├── bubble_chart.py
+│   │   ├── game_chart.py
+│   │   ├── life_quality.py
 │   │   ├── player_motivation.py
-│   │   ├── platform_chart.py
 │   │   ├── score_radar.py
-│   │   └── life_quality.py
-│   └── utils/                 # Utility functions
-│       ├── data_processing.py
-│       ├── visualization.py
-│       └── constants.py
-├── data/
-│   └── processed/
-│       └── processed_data.csv # Your dataset
-└── requirements.txt           # Project dependencies
+│   │   ├── sunburst_chart.py
+│   │   └── world_map.py
+│   ├── pages
+│   │   ├── __init__.py
+│   │   ├── game_analysis.py
+│   │   ├── player_analysis.py
+│   │   └── quality_analysis.py
+│   └── utils
+│       ├── __init__.py
+│       └── data_processing.py
 ```
 
 ## Installation
@@ -103,14 +115,3 @@ The application expects a CSV file with the following columns:
 - Work: Employment Status
 - Age: Player Age
 - Residence_ISO3: Country Code
-
-## Team Members
-- Kaixi Wang
-- Caichen Sun
-- Kaiwen Zhang
-- Jiaming Zheng
-- Jing Zhao
-- Anna Jin
-
-## License
-This project is licensed under the MIT License - see the LICENSE file for details
