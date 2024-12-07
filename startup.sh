@@ -19,9 +19,39 @@ if ! command_exists python3; then
         brew install python
         echo "✔️ Python3 installed successfully!"
     elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
-        echo "❌ You're on Windows. Please install Python manually from https://www.python.org/downloads/"
-        echo "ℹ️ Ensure Python3 and pip are added to your PATH after installation."
-        exit 1
+        echo "🔄 Windows detected. Checking for required tools..."
+        
+        # Check if winget is available (Windows 10 and later)
+        if ! command_exists winget; then
+            echo "❌ Winget is not available. Please ensure you're running Windows 10 or later."
+            echo "ℹ️ You can install Python manually from https://www.python.org/downloads/"
+            echo "ℹ️ Make sure to check 'Add Python to PATH' during installation"
+            exit 1
+        fi
+
+        # Try to install Python using winget
+        echo "🔄 Installing Python 3.13 using winget..."
+        winget install Python.Python.3.13
+        
+        # Refresh PATH environment
+        export PATH="$PATH:/c/Users/$USERNAME/AppData/Local/Programs/Python/Python313:/c/Users/$USERNAME/AppData/Local/Programs/Python/Python313/Scripts"
+        
+        # Verify Python installation
+        if ! command_exists python3; then
+            if command_exists python; then
+                echo "✔️ Python is installed as 'python' instead of 'python3'"
+                alias python3=python
+                python --version
+            else
+                echo "❌ Python installation failed. Please install manually from https://www.python.org/downloads/"
+                echo "ℹ️ Ensure to check 'Add Python to PATH' during installation"
+                exit 1
+            fi
+        else
+            python3 --version
+        fi
+        
+        echo "✔️ Python installation completed!"
     else
         echo "❌ Unsupported OS. Please install Python3 manually."
         exit 1
@@ -62,11 +92,6 @@ fi
 echo "🔄 Activating the virtual environment..."
 source "$(pipenv --venv)/bin/activate"
 echo "✔️ Virtual environment activated! You are now in the Pipenv environment."
-
-# 6. Ensure ipykernel is installed
-echo "🔄 Installing ipykernel..."
-pip install ipykernel
-echo "✔️ ipykernel installed successfully!"
 
 # 7. Prompt to configure Git user and email
 echo "🔧 Configuration of Git user and email for this repository:"
