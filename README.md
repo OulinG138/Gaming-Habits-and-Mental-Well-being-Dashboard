@@ -1,7 +1,7 @@
 # Gaming Habits and Mental Well-being Dashboard
 
 ## Overview
-This project is an interactive dashboard that visualizes the relationship between gaming habits and mental well-being. It analyzes various aspects including gaming platforms, playing styles, anxiety levels, and life satisfaction across different demographics.
+This project features an **interactive dashboard** designed to explore the relationship between gaming habits and mental well-being. It provides insights into various factors such as gaming platforms, play styles, anxiety levels, and life satisfaction across different demographics. Explore the dashboard and its features at [here](https://sta313-project-5brqsj4nyusr65uvqvjcoq.streamlit.app/).
 
 ## Features
 - Global visualization of gaming-related anxiety levels
@@ -12,28 +12,40 @@ This project is an interactive dashboard that visualizes the relationship betwee
 
 ## Project Structure
 ```
-STA313-Project/
-├── src/
-│   ├── app.py                 # Main application file
-│   ├── pages/                 # Page components
-│   │   ├── player_analysis.py
-│   │   ├── game_analysis.py
-│   │   └── quality_analysis.py
-│   ├── components/            # Reusable components
-│   │   ├── world_map.py
+├── assets
+│   └── game_logos
+├── data
+│   ├── processed
+│   │   └── processed_data.csv
+│   └── raw
+│       ├── Gaming Study Data.csv
+│       └── world-countries.json
+├── docs
+│   └── Data Column Descriptions.pdf
+├── notebooks
+│   ├── 01_data_exploration.ipynb
+│   ├── 02_data_cleaning.ipynb
+│   ├── 03_data_visualization.ipynb
+├── src
+│   ├── app.py
+│   ├── components
+│   │   ├── __init__.py
 │   │   ├── age_groups.py
+│   │   ├── bubble_chart.py
+│   │   ├── game_chart.py
+│   │   ├── life_quality.py
 │   │   ├── player_motivation.py
-│   │   ├── platform_chart.py
 │   │   ├── score_radar.py
-│   │   └── life_quality.py
-│   └── utils/                 # Utility functions
-│       ├── data_processing.py
-│       ├── visualization.py
-│       └── constants.py
-├── data/
-│   └── processed/
-│       └── processed_data.csv # Your dataset
-└── requirements.txt           # Project dependencies
+│   │   ├── sunburst_chart.py
+│   │   └── world_map.py
+│   ├── pages
+│   │   ├── __init__.py
+│   │   ├── game_analysis.py
+│   │   ├── player_analysis.py
+│   │   └── quality_analysis.py
+│   └── utils
+│       ├── __init__.py
+│       └── data_processing.py
 ```
 
 ## Installation
