@@ -53,7 +53,7 @@ This project features an **interactive dashboard** designed to explore the relat
 1. Clone the repository:
 ```bash
 git clone [your-repository-url]
-cd STA313-Project
+cd [direrctory-name]
 ```
 
 2. Create and activate a virtual environment:
